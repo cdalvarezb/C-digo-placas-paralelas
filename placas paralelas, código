@@ -1,0 +1,101 @@
+
+#                  Símbolos usados                           
+#-------------------------------------------------------------------------
+# E = Campo eléctrico total
+# V =Matriz de voltaje
+# Nx = Número de puntos en la dirección X
+# Ny = Número de puntos en la dirección Y
+#-------------------------------------------------------------------------
+
+
+import numpy as np
+import math
+import matplotlib.pyplot as plt
+from numpy.linalg import norm
+
+Nx = 101;     # número de puntos en x
+Ny = 201;     # número de puntos en y
+mpx = math.ceil(Nx/2) #punto medio x
+mpy = math.ceil(Ny/2) #punto medio y
+
+ 
+Ni = 1100;  # número de iteraciones 
+
+V = np.zeros((Nx,Ny))   
+    
+T = 0           # potencial arriba
+B = 0           # potencial abajo
+L = 0           # potencial a la izquierda
+R = 0           # potencial a la derecha
+#-------------------------------------------------------------------------
+# Da valores a los potenciales en las esquinas
+#-------------------------------------------------------------------------
+
+V[1,:] = L
+R= V[Nx:,]
+V[:,1] = B
+V[:,:Ny]=T
+
+#-------------------------------------------------------------------------
+# Inicializa el potencial de las esquinas
+#-------------------------------------------------------------------------
+V11= 0.5*(V[0]+V[1])
+V11=[1,1]
+
+#-------------------------------------------------------------------------
+
+length_plate = 130
+lp=math.floor(length_plate/2)
+position_plate = 2
+pp1 = mpx+position_plate
+pp2 = mpx-position_plate
+
+for z in range(Ni):# iteraciones
+        for i in range(1,Nx-1):
+            for j in range(1,Ny-1):
+            
+    
+            # Valores de potenciales eléctricos para todas las iteraciones
+            
+                V[pp1+2,mpy-lp:mpy+lp] = 100;
+                V[pp2,mpy-lp:mpy+lp]= 0;
+                
+                V[i,j]=0.25*(V[i+1,j]+V[i-1,j]+V[i,j+1]+V[i,j-1])
+                
+                
+        
+# Hacer la transpuesta de la matriz del potencial
+V=np.transpose(V)
+
+[Ex,Ey]=np.gradient(V);
+Ey, Ex = -Ey, -Ex #  Como el campo da negativo, toca convertirlo a positivo
+
+# Halla la magnitud del campo E
+E = ((Ex)**2+(Ey)**2)**1/2
+Em = np.linalg.norm(E)
+
+#Halla la capacitancia del condensador de placas paralelas
+
+C=(Em*8.85e-12*math.pi*0.13*0.13)/100
+
+print(C)
+
+
+#Realiza la gráfica de la distribución del potencial       
+fig1 = plt.figure(1)
+f1 = plt.contourf(V, 10, cmap ='jet')
+plt.colorbar(f1) 
+plt.xlabel("Largo [mm]")
+plt.ylabel("Alto [mm]") 
+plt.savefig("potencial.png", dpi=300)  
+
+
+#Realiza la gráfica de la distribución del campo E
+
+fig2 =  plt.figure(2)
+f2 = plt.contourf(E, 40, cmap ='jet')
+cb = plt.colorbar(f2)  
+plt.xlabel("Largo [mm]") 
+plt.ylabel("Alto [mm]")
+plt.savefig("campo_electrico.png", dpi=300)  
+
